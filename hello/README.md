@@ -12,23 +12,33 @@ This is a template for use with the [Leptos](https://github.com/leptos-rs/leptos
 If you don't have `cargo-leptos` installed you can install it with
 
 ```bash
-cargo install cargo-leptos --locked
+cargo install cargo-leptos
 ```
 
 Then run
 ```bash
-cargo leptos new --git leptos-rs/start-axum
+cargo leptos new --git https://github.com/leptos-rs/start-axum-workspace/
 ```
 
 to generate a new project template.
 
 ```bash
-cd playground
+cd {projectname}
 ```
 
 to go to your newly created project.  
 Feel free to explore the project structure, but the best place to start with your application code is in `src/app.rs`.  
 Addtionally, Cargo.toml may need updating as new versions of the dependencies are released, especially if things are not working after a `cargo update`.
+
+### Islands support
+
+Note that for islands to work correctly, you need to have a `use app;` in your frontend `lib.rs` otherwise rustc / wasm_bindgen gets confused.
+To prevent clippy from complaining, at the top of the `frontend/lib.rs` file place:
+```rust
+#[allow(clippy::single_component_path_imports)]
+#[allow(unused_imports)]
+use app;
+```
 
 ## Running your project
 
@@ -41,9 +51,10 @@ cargo leptos watch
 By default, `cargo-leptos` uses `nightly` Rust, `cargo-generate`, and `sass`. If you run into any trouble, you may need to install one or more of these tools.
 
 1. `rustup toolchain install nightly --allow-downgrade` - make sure you have Rust nightly
-2. `rustup target add wasm32-unknown-unknown` - add the ability to compile Rust to WebAssembly
-3. `cargo install cargo-generate` - install `cargo-generate` binary (should be installed automatically in future)
-4. `npm install -g sass` - install `dart-sass` (should be optional in future
+2. `rustup default nightly` - setup nightly as default, or you can use rust-toolchain file later on
+3. `rustup target add wasm32-unknown-unknown` - add the ability to compile Rust to WebAssembly
+4. `cargo install cargo-generate` - install `cargo-generate` binary (should be installed automatically in future)
+5. `npm install -g sass` - install `dart-sass` (should be optional in future
 
 ## Compiling for Release
 ```bash
@@ -72,12 +83,12 @@ After running a `cargo leptos build --release` the minimum files needed are:
 
 Copy these files to your remote server. The directory structure should be:
 ```text
-playground
+start-axum
 site/
 ```
-Set the following environment variables (updating for your project as needed):
+Set the following enviornment variables (updating for your project as needed):
 ```text
-LEPTOS_OUTPUT_NAME="playground"
+LEPTOS_OUTPUT_NAME="start-axum"
 LEPTOS_SITE_ROOT="site"
 LEPTOS_SITE_PKG_DIR="pkg"
 LEPTOS_SITE_ADDR="127.0.0.1:3000"

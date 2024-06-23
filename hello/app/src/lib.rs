@@ -1,7 +1,11 @@
 use crate::error_template::{AppError, ErrorTemplate};
+
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
+use logging::log;
+
+pub mod error_template;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -9,11 +13,7 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
-
-
-        // injects a stylesheet into the document <head>
-        // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/playground.css"/>
+        <Stylesheet id="leptos" href="/pkg/start-axum-workspace.css"/>
 
         // sets the document title
         <Title text="Welcome to Leptos"/>
@@ -22,10 +22,7 @@ pub fn App() -> impl IntoView {
         <Router fallback=|| {
             let mut outside_errors = Errors::default();
             outside_errors.insert_with_default_key(AppError::NotFound);
-            view! {
-                <ErrorTemplate outside_errors/>
-            }
-            .into_view()
+            view! { <ErrorTemplate outside_errors/> }.into_view()
         }>
             <main>
                 <Routes>
@@ -36,15 +33,31 @@ pub fn App() -> impl IntoView {
     }
 }
 
+#[server]
+pub async fn print_on_server(content: String) -> Result<i32, ServerFnError> {
+    println!("{}", content);
+    Ok(1)
+}
+
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
     // Creates a reactive value to update the button
     let (count, set_count) = create_signal(0);
-    let on_click = move |_| set_count.update(|count| *count += 1);
+    // let on_click = move |_| set_count.update(|count| *count += 1);
+
+    let clj = move |_| {
+        spawn_local(async move {
+            let res = print_on_server("hello world".to_owned()).await.unwrap();
+            log!("server says I should incr by {}", res);
+            set_count.update(|count| *count += res);
+            ()
+        });
+    };
 
     view! {
+        <Script src="https://cdn.tailwindcss.com" />
         <h1>"Welcome to Leptos!"</h1>
-        <button on:click=on_click>"Click Me: " {count}</button>
+        <button on:click=clj>"Click Me: " {count}</button>
     }
 }

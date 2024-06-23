@@ -1,10 +1,14 @@
+use app::*;
+use axum::Router;
+use fileserv::file_and_error_handler;
+use leptos::*;
+use leptos_axum::{generate_route_list, LeptosRoutes};
+
+pub mod fileserv;
+
 #[tokio::main]
 async fn main() {
-    use axum::Router;
-    use leptos::*;
-    use leptos_axum::{generate_route_list, LeptosRoutes};
-    use playground::app::*;
-    use playground::fileserv::file_and_error_handler;
+    simple_logger::init_with_level(log::Level::Debug).expect("couldn't initialize logging");
 
     // Setting get_configuration(None) means we'll be using cargo-leptos's env values
     // For deployment these variables are:
@@ -22,9 +26,17 @@ async fn main() {
         .fallback(file_and_error_handler)
         .with_state(leptos_options);
 
-    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-    logging::log!("listening on http://{}", &addr);
+    // run our app with hyper
+    // `axum::Server` is a re-export of `hyper::Server`
+    log::info!("listening on http://{}", &addr);
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app.into_make_service())
         .await
         .unwrap();
+}
+
+#[server]
+pub async fn print_on_server(content: String) -> Result<i64, ServerFnError> {
+    println!("{}", content);
+    Ok(content.len() as i64)
 }
